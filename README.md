@@ -27,4 +27,3 @@ You can’t use Supabase edge functions because they don’t allow installing cu
 
 ## License
 MIT
-*/
