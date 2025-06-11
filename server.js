@@ -8,7 +8,8 @@ const app = express();
 app.use(express.json({ limit: "5mb" }));
 app.use(cors());
 
-app.post("/compile", async (req, res) => {
+// ✅ This ensures it’s mounted at `/api/compile`
+app.post("/api/compile", async (req, res) => {
   const { template, data } = req.body;
   if (!template || !data) return res.status(400).send("Missing template or data");
 
@@ -20,14 +21,13 @@ app.post("/compile", async (req, res) => {
   try {
     await fs.mkdir(tempDir);
     let filled = template;
+
     for (const [key, value] of Object.entries(data)) {
-    const pattern = new RegExp(`{{\\s*${key}\\s*}}`, "g");
-    filled = filled.replace(pattern, value || "");
+      const pattern = new RegExp(`{{\\s*${key}\\s*}}`, "g");
+      filled = filled.replace(pattern, value || "");
     }
 
-    // After filling known values, remove any unmatched placeholders
-    filled = filled.replace(/{{\s*[\w\.]+\s*}}/g, "");
-
+    filled = filled.replace(/{{\s*[\w\.]+\s*}}/g, ""); // clean leftovers
     await fs.writeFile(typFile, filled);
 
     exec(`typst compile ${typFile} ${pdfFile}`, async (err) => {
@@ -42,4 +42,5 @@ app.post("/compile", async (req, res) => {
   }
 });
 
-app.listen(3000, () => console.log("Typst server running on port 3000"));
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`✅ Typst PDF server running on port ${port}`));
