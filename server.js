@@ -21,9 +21,13 @@ app.post("/compile", async (req, res) => {
     await fs.mkdir(tempDir);
     let filled = template;
     for (const [key, value] of Object.entries(data)) {
-      const pattern = new RegExp(`{{\\s*${key}\\s*}}`, "g");
-      filled = filled.replace(pattern, value);
+    const pattern = new RegExp(`{{\\s*${key}\\s*}}`, "g");
+    filled = filled.replace(pattern, value || "");
     }
+
+    // After filling known values, remove any unmatched placeholders
+    filled = filled.replace(/{{\s*[\w\.]+\s*}}/g, "");
+
     await fs.writeFile(typFile, filled);
 
     exec(`typst compile ${typFile} ${pdfFile}`, async (err) => {
